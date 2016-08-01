@@ -118,3 +118,8 @@ You can use resulting schema everywhere marshmallow.Schema can be used, e.g.
 
         class MyOtherSchema(m.Schema):
             items = f.List(f.Nested(MyUberSchema))
+
+License
+-------
+
+MIT licensed. See the bundled `LICENSE <https://github.com/maximkulkin/marshmallow-oneofschema/blob/master/LICENSE>`_ file for more details.
