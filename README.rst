@@ -113,6 +113,7 @@ You can customize type field with `type_field` class property:
 You can use resulting schema everywhere marshmallow.Schema can be used, e.g.
 
 .. code:: python
+
         import marshmallow as m
         import marshmallow.fields as f
 
