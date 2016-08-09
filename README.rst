@@ -82,7 +82,9 @@ Once setup the schema should act like any other schema. If it does not then plea
         MyUberSchema().dump([Foo(foo='hello'), Bar(bar=123)], many=True).data
         # => [{'type': 'foo', 'foo': 'hello'}, {'type': 'bar', 'bar': 123}]
 
-        MyUberSchema().load([{'type': 'foo', 'foo': 'hello'}, {'type': 'bar', 'bar': 123}]).data
+        MyUberSchema().load([{'type': 'foo', 'foo': 'hello'},
+                             {'type': 'bar', 'bar': 123}],
+                            many=True).data
         # => [Foo('hello'), Bar(123)]
 
 By default get_obj_type() returns obj.__class__.__name__, so you can just reuse that
