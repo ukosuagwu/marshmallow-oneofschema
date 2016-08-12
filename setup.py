@@ -9,7 +9,7 @@ def read(fname):
 
 setup(
     name='marshmallow-oneofschema',
-    version='1.0.1',
+    version='1.0.2',
     description='Marshmallow multiplexing schema',
     long_description=read('README.rst'),
     author='Maxim Kulkin',
