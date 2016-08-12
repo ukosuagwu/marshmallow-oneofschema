@@ -44,10 +44,33 @@ class BarSchema(m.Schema):
         return Bar(**data)
 
 
+class Baz(object):
+    def __init__(self, value1=None, value2=None):
+        self.value1 = value1
+        self.value2 = value2
+
+    def __repr__(self):
+        return '<Bar value1=%s value2=%s>' % (self.value1, self.value2)
+
+    def __eq__(self, other):
+        return isinstance(other, self.__class__) and self.value1 == other.value1 \
+            and self.value2 == other.value2
+
+
+class BazSchema(m.Schema):
+    value1 = f.Integer(required=True)
+    value2 = f.String(required=True)
+
+    @m.post_load
+    def make_bar(self, data):
+        return Baz(**data)
+
+
 class MySchema(OneOfSchema):
     type_schemas = {
         'Foo': FooSchema,
         'Bar': BarSchema,
+        'Baz': BazSchema,
     }
 
 
@@ -113,6 +136,53 @@ class TestOneOfSchema:
         ], many=True)
         assert {0: {'value': [REQUIRED_ERROR]}} == result.errors
 
+    def test_load_partial_specific(self):
+        result = MySchema().load({'type': 'Foo'},
+                                 partial=('value', 'value2',))
+        assert Foo() == result.data
+        assert {} == result.errors
+
+        result = MySchema().load({'type': 'Baz', 'value1': 123},
+                                 partial=('value', 'value2',))
+        assert Baz(value1=123) == result.data
+        assert {} == result.errors
+
+    def test_load_partial_any(self):
+        result = MySchema().load({'type': 'Foo'}, partial=True)
+        assert Foo() == result.data
+        assert {} == result.errors
+
+        result = MySchema().load({'type': 'Baz', 'value1': 123}, partial=True)
+        assert Baz(value1=123) == result.data
+        assert {} == result.errors
+
+        result = MySchema().load({'type': 'Baz', 'value2': 'hello'}, partial=True)
+        assert Baz(value2='hello') == result.data
+        assert {} == result.errors
+
+    def test_load_partial_specific_in_constructor(self):
+        result = MySchema(partial=('value', 'value2',)).load({'type': 'Foo'})
+        assert Foo() == result.data
+        assert {} == result.errors
+
+        result = MySchema(partial=('value', 'value2',))\
+            .load({'type': 'Baz', 'value1': 123})
+        assert Baz(value1=123) == result.data
+        assert {} == result.errors
+
+    def test_load_partial_any_in_constructor(self):
+        result = MySchema(partial=True).load({'type': 'Foo'})
+        assert Foo() == result.data
+        assert {} == result.errors
+
+        result = MySchema(partial=True).load({'type': 'Baz', 'value1': 123})
+        assert Baz(value1=123) == result.data
+        assert {} == result.errors
+
+        result = MySchema(partial=True).load({'type': 'Baz', 'value2': 'hello'})
+        assert Baz(value2='hello') == result.data
+        assert {} == result.errors
+
     def test_validate(self):
         assert {} == MySchema().validate({'type': 'Foo', 'value': '123'})
         assert {'value': [REQUIRED_ERROR]} == MySchema().validate({'type': 'Bar'})
@@ -130,6 +200,58 @@ class TestOneOfSchema:
         ], many=True)
         assert {0: {'type': [REQUIRED_ERROR]},
                 1: {'value': [REQUIRED_ERROR]}} == errors
+
+    def test_validate_many_in_constructor(self):
+        errors = MySchema(many=True).validate([
+            {'type': 'Foo', 'value': '123'},
+            {'type': 'Bar', 'value': 123},
+        ])
+        assert {} == errors
+
+        errors = MySchema(many=True).validate([
+            {'value': '123'},
+            {'type': 'Bar'},
+        ])
+        assert {0: {'type': [REQUIRED_ERROR]},
+                1: {'value': [REQUIRED_ERROR]}} == errors
+
+    def test_validate_partial_specific(self):
+        errors = MySchema().validate({'type': 'Foo'},
+                                     partial=('value', 'value2',))
+        assert {} == errors
+
+        errors = MySchema().validate({'type': 'Baz', 'value1': 123},
+                                     partial=('value', 'value2',))
+        assert {} == errors
+
+    def test_validate_partial_any(self):
+        errors = MySchema().validate({'type': 'Foo'}, partial=True)
+        assert {} == errors
+
+        errors = MySchema().validate({'type': 'Baz', 'value1': 123}, partial=True)
+        assert {} == errors
+
+        errors = MySchema().validate({'type': 'Baz', 'value2': 'hello'},
+                                     partial=True)
+        assert {} == errors
+
+    def test_validate_partial_specific_in_constructor(self):
+        errors = MySchema(partial=('value', 'value2',)).validate({'type': 'Foo'})
+        assert {} == errors
+
+        errors = MySchema(partial=('value', 'value2',))\
+            .validate({'type': 'Baz', 'value1': 123})
+        assert {} == errors
+
+    def test_validate_partial_any_in_constructor(self):
+        errors = MySchema(partial=True).validate({'type': 'Foo'})
+        assert {} == errors
+
+        errors = MySchema(partial=True).validate({'type': 'Baz', 'value1': 123})
+        assert {} == errors
+
+        errors = MySchema(partial=True).validate({'type': 'Baz', 'value2': 'hello'})
+        assert {} == errors
 
     def test_using_as_nested_schema(self):
         class SchemaWithList(m.Schema):

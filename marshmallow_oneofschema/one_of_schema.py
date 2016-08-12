@@ -101,6 +101,9 @@ class OneOfSchema(Schema):
 
     def load(self, data, many=None, partial=None):
         many = self.many if many is None else bool(many)
+        if partial is None:
+            partial = self.partial
+
         if not many:
             return self._load(data, partial=partial)
 
