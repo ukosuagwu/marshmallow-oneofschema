@@ -1,6 +1,6 @@
-=====================
+=======================
 Marshmallow-OneOfSchema
-=====================
+=======================
 
 .. image:: https://travis-ci.org/maximkulkin/marshmallow-oneofschema.svg?branch=master
     :target: https://travis-ci.org/maximkulkin/marshmallow-oneofschema
