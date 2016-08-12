@@ -67,6 +67,12 @@ class TestOneOfSchema:
                 {'type': 'Bar', 'value': 123}] == result.data
         assert {} == result.errors
 
+    def test_dump_many_in_constructor(self):
+        result = MySchema(many=True).dump([Foo('hello'), Bar(123)])
+        assert [{'type': 'Foo', 'value': 'hello'},
+                {'type': 'Bar', 'value': 123}] == result.data
+        assert {} == result.errors
+
     def test_load(self):
         foo_result = MySchema().load({'type': 'Foo', 'value': 'world'})
         assert Foo('world') == foo_result.data
@@ -81,6 +87,14 @@ class TestOneOfSchema:
             {'type': 'Foo', 'value': 'hello world!'},
             {'type': 'Bar', 'value': 123},
         ], many=True)
+        assert [Foo('hello world!'), Bar(123)] == result.data
+        assert {} == result.errors
+
+    def test_load_many_in_constructor(self):
+        result = MySchema(many=True).load([
+            {'type': 'Foo', 'value': 'hello world!'},
+            {'type': 'Bar', 'value': 123},
+        ])
         assert [Foo('hello world!'), Bar(123)] == result.data
         assert {} == result.errors
 

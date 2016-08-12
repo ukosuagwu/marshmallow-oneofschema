@@ -62,6 +62,7 @@ class OneOfSchema(Schema):
         return obj.__class__.__name__
 
     def dump(self, obj, many=None, update_fields=True, **kwargs):
+        many = self.many if many is None else bool(many)
         if not many:
             return self._dump(obj, update_fields, **kwargs)
 
@@ -99,6 +100,7 @@ class OneOfSchema(Schema):
         return result
 
     def load(self, data, many=None, partial=None):
+        many = self.many if many is None else bool(many)
         if not many:
             return self._load(data, partial=partial)
 
