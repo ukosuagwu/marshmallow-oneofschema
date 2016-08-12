@@ -271,6 +271,24 @@ class TestOneOfSchema:
         ]})
         assert {'items': {1: {'type': [REQUIRED_ERROR]}}} == result.errors
 
+    def test_using_as_nested_schema_with_many(self):
+        class SchemaWithMany(m.Schema):
+            items = f.Nested(MySchema, many=True)
+
+        schema = SchemaWithMany()
+        result = schema.load({'items': [
+            {'type': 'Foo', 'value': 'hello world!'},
+            {'type': 'Bar', 'value': 123},
+        ]})
+        assert {'items': [Foo('hello world!'), Bar(123)]} == result.data
+        assert {} == result.errors
+
+        result = schema.load({'items': [
+            {'type': 'Foo', 'value': 'hello world!'},
+            {'value': 123},
+        ]})
+        assert {'items': {1: {'type': [REQUIRED_ERROR]}}} == result.errors
+
     def test_using_custom_type_names(self):
         class MyCustomTypeNameSchema(OneOfSchema):
             type_schemas = {
