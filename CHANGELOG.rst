@@ -1,6 +1,12 @@
 Changelog
 ---------
 
+1.0.3 (2016-11-04)
+++++++++++++++++++
+
+* Add support for raising errors when schema is strict
+* Remove type field from data on load
+
 1.0.2 (2016-08-11)
 ++++++++++++++++++
 
