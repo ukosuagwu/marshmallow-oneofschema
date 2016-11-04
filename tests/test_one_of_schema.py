@@ -1,6 +1,7 @@
 import marshmallow as m
 import marshmallow.fields as f
 from marshmallow_oneofschema import OneOfSchema
+import pytest
 
 
 REQUIRED_ERROR = u'Missing data for required field.'
@@ -62,7 +63,7 @@ class BazSchema(m.Schema):
     value2 = f.String(required=True)
 
     @m.post_load
-    def make_bar(self, data):
+    def make_baz(self, data):
         return Baz(**data)
 
 
@@ -121,6 +122,40 @@ class TestOneOfSchema:
         assert [Foo('hello world!'), Bar(123)] == result.data
         assert {} == result.errors
 
+    def test_load_removes_type_field(self):
+        class Nonlocal(object):
+            data = None
+
+        class MySchema(m.Schema):
+            def load(self, data, *args, **kwargs):
+                Nonlocal.data = data
+                return super(MySchema, self).load(data, *args, **kwargs)
+
+        class FooSchema(MySchema):
+            foo = f.String(required=True)
+
+        class BarSchema(MySchema):
+            bar = f.Integer(required=True)
+
+        class TestSchema(OneOfSchema):
+            type_schemas = {
+                'Foo': FooSchema,
+                'Bar': BarSchema,
+            }
+
+        TestSchema().load({'type': 'Foo', 'foo': 'hello'})
+        assert 'type' not in Nonlocal.data
+
+        TestSchema().load({'type': 'Bar', 'bar': 123})
+        assert 'type' not in Nonlocal.data
+
+    def test_load_non_dict(self):
+        result = MySchema().load(123)
+        assert {} != result.errors
+
+        result = MySchema().load('Foo')
+        assert {} != result.errors
+
     def test_load_errors_no_type(self):
         result = MySchema().load({'value': 'Foo'})
         assert {'type': [REQUIRED_ERROR]} == result.errors
@@ -129,12 +164,31 @@ class TestOneOfSchema:
         result = MySchema().load({'type': 'Foo'})
         assert {'value': [REQUIRED_ERROR]} == result.errors
 
+    def test_load_errors_strict(self):
+        with pytest.raises(m.ValidationError) as exc_info:
+            MySchema(strict=True).load({'type': 'Foo'})
+
+        assert {'value': ['Missing data for required field.']} == \
+            exc_info.value.messages
+
     def test_load_many_errors_are_indexed_by_object_position(self):
         result = MySchema().load([
             {'type': 'Foo'},
             {'type': 'Bar', 'value': 123},
         ], many=True)
         assert {0: {'value': [REQUIRED_ERROR]}} == result.errors
+
+    def test_load_many_errors_strict(self):
+        with pytest.raises(m.ValidationError) as exc_info:
+            MySchema(strict=True).load([
+                {'type': 'Foo', 'value': 'hello world!'},
+                {'type': 'Foo'},
+                {'type': 'Bar', 'value': 123},
+                {'type': 'Bar', 'value': 'hello'},
+            ], many=True)
+
+        assert {1: {'value': ['Missing data for required field.']},
+                3: {'value': ['Not a valid integer.']}} == exc_info.value.messages
 
     def test_load_partial_specific(self):
         result = MySchema().load({'type': 'Foo'},
@@ -186,6 +240,8 @@ class TestOneOfSchema:
     def test_validate(self):
         assert {} == MySchema().validate({'type': 'Foo', 'value': '123'})
         assert {'value': [REQUIRED_ERROR]} == MySchema().validate({'type': 'Bar'})
+        assert {'value': [REQUIRED_ERROR]} == \
+            MySchema(strict=True).validate({'type': 'Bar'})
 
     def test_validate_many(self):
         errors = MySchema().validate([
@@ -195,6 +251,13 @@ class TestOneOfSchema:
         assert {} == errors
 
         errors = MySchema().validate([
+            {'value': '123'},
+            {'type': 'Bar'},
+        ], many=True)
+        assert {0: {'type': [REQUIRED_ERROR]},
+                1: {'value': [REQUIRED_ERROR]}} == errors
+
+        errors = MySchema(strict=True).validate([
             {'value': '123'},
             {'type': 'Bar'},
         ], many=True)

@@ -1,4 +1,4 @@
-from marshmallow import Schema, MarshalResult, UnmarshalResult
+from marshmallow import Schema, MarshalResult, UnmarshalResult, ValidationError
 
 
 class OneOfSchema(Schema):
@@ -64,18 +64,23 @@ class OneOfSchema(Schema):
     def dump(self, obj, many=None, update_fields=True, **kwargs):
         many = self.many if many is None else bool(many)
         if not many:
-            return self._dump(obj, update_fields, **kwargs)
+            result = self._dump(obj, update_fields, **kwargs)
+        else:
+            result_data = []
+            result_errors = {}
 
-        result_data = []
-        result_errors = {}
+            for idx, o in enumerate(obj):
+                result = self._dump(o, update_fields, **kwargs)
+                result_data.append(result.data)
+                if result.errors:
+                    result_errors[idx] = result.errors
 
-        for idx, o in enumerate(obj):
-            result = self._dump(o, update_fields, **kwargs)
-            result_data.append(result.data)
-            if result.errors:
-                result_errors[idx] = result.errors
+            result = MarshalResult(result_data, result_errors)
 
-        return MarshalResult(result_data, result_errors)
+        if result.errors and self.strict:
+            raise ValidationError(result.errors)
+
+        return result
 
     def _dump(self, obj, update_fields=True, **kwargs):
         obj_type = self.get_obj_type(obj)
@@ -105,24 +110,34 @@ class OneOfSchema(Schema):
             partial = self.partial
 
         if not many:
-            return self._load(data, partial=partial)
+            result = self._load(data, partial=partial)
+        else:
+            result_data = []
+            result_errors = {}
 
-        result_data = []
-        result_errors = {}
+            for idx, item in enumerate(data):
+                result = self._load(item, partial=partial)
+                result_data.append(result.data)
+                if result.errors:
+                    result_errors[idx] = result.errors
 
-        for idx, item in enumerate(data):
-            result = self._load(item, partial=partial)
-            result_data.append(result.data)
-            if result.errors:
-                result_errors[idx] = result.errors
+            result = UnmarshalResult(result_data, result_errors)
 
-        return UnmarshalResult(result_data, result_errors)
+        if result.errors and self.strict:
+            raise ValidationError(result.errors)
+
+        return result
 
     def _load(self, data, partial=None):
-        data_type = data.get(self.type_field)
+        if not isinstance(data, dict):
+            return UnmarshalResult({}, {'_schema': 'Invalid data type: %s' % data})
+
+        data = dict(data)
+
+        data_type = data.pop(self.type_field, None)
         if not data_type:
             return UnmarshalResult({}, {
-                self.type_field: [u'Missing data for required field.']
+                self.type_field: ['Missing data for required field.']
             })
 
         type_schema = self.type_schemas.get(data_type)
@@ -136,4 +151,7 @@ class OneOfSchema(Schema):
         return schema.load(data, many=False, partial=partial)
 
     def validate(self, data, many=None, partial=None):
-        return self.load(data, many=many, partial=partial).errors
+        try:
+            return self.load(data, many=many, partial=partial).errors
+        except ValidationError as ve:
+            return ve.messages
