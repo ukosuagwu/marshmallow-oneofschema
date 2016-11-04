@@ -122,6 +122,33 @@ class TestOneOfSchema:
         assert [Foo('hello world!'), Bar(123)] == result.data
         assert {} == result.errors
 
+    def test_load_removes_type_field(self):
+        class Nonlocal(object):
+            data = None
+
+        class MySchema(m.Schema):
+            def load(self, data, *args, **kwargs):
+                Nonlocal.data = data
+                return super(MySchema, self).load(data, *args, **kwargs)
+
+        class FooSchema(MySchema):
+            foo = f.String(required=True)
+
+        class BarSchema(MySchema):
+            bar = f.Integer(required=True)
+
+        class TestSchema(OneOfSchema):
+            type_schemas = {
+                'Foo': FooSchema,
+                'Bar': BarSchema,
+            }
+
+        TestSchema().load({'type': 'Foo', 'foo': 'hello'})
+        assert 'type' not in Nonlocal.data
+
+        TestSchema().load({'type': 'Bar', 'bar': 123})
+        assert 'type' not in Nonlocal.data
+
     def test_load_non_dict(self):
         result = MySchema().load(123)
         assert {} != result.errors

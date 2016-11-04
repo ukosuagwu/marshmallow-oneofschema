@@ -132,7 +132,9 @@ class OneOfSchema(Schema):
         if not isinstance(data, dict):
             return UnmarshalResult({}, {'_schema': 'Invalid data type: %s' % data})
 
-        data_type = data.get(self.type_field)
+        data = dict(data)
+
+        data_type = data.pop(self.type_field, None)
         if not data_type:
             return UnmarshalResult({}, {
                 self.type_field: ['Missing data for required field.']
