@@ -122,6 +122,13 @@ class TestOneOfSchema:
         assert [Foo('hello world!'), Bar(123)] == result.data
         assert {} == result.errors
 
+    def test_load_non_dict(self):
+        result = MySchema().load(123)
+        assert {} != result.errors
+
+        result = MySchema().load('Foo')
+        assert {} != result.errors
+
     def test_load_errors_no_type(self):
         result = MySchema().load({'value': 'Foo'})
         assert {'type': [REQUIRED_ERROR]} == result.errors

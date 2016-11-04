@@ -129,6 +129,9 @@ class OneOfSchema(Schema):
         return result
 
     def _load(self, data, partial=None):
+        if not isinstance(data, dict):
+            return UnmarshalResult({}, {'_schema': 'Invalid data type: %s' % data})
+
         data_type = data.get(self.type_field)
         if not data_type:
             return UnmarshalResult({}, {
