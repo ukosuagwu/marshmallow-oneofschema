@@ -135,10 +135,9 @@ class OneOfSchema(Schema):
 
         data = dict(data)
 
-        if self.type_field_remove:
-            data_type = data.pop(self.type_field, None)
-        else:
-            data_type = data[self.type_field]
+        data_type = data.get(self.type_field)
+        if self.type_field in data and self.type_field_remove:
+            data.pop(self.type_field)
 
         if not data_type:
             return UnmarshalResult({}, {
