@@ -55,6 +55,7 @@ class OneOfSchema(Schema):
     setting `type_field` class property.
     """
     type_field = 'type'
+    type_field_remove = True
     type_schemas = []
 
     def get_obj_type(self, obj):
@@ -134,7 +135,11 @@ class OneOfSchema(Schema):
 
         data = dict(data)
 
-        data_type = data.pop(self.type_field, None)
+        if self.type_field_remove:
+            data_type = data.pop(self.type_field, None)
+        else:
+            data_type = data[self.type_field]
+
         if not data_type:
             return UnmarshalResult({}, {
                 self.type_field: ['Missing data for required field.']

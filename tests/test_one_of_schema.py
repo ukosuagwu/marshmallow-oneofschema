@@ -149,6 +149,35 @@ class TestOneOfSchema:
         TestSchema().load({'type': 'Bar', 'bar': 123})
         assert 'type' not in Nonlocal.data
 
+    def test_load_keeps_type_field(self):
+        class Nonlocal(object):
+            data = None
+            type = None
+
+        class MySchema(m.Schema):
+            def load(self, data, *args, **kwargs):
+                Nonlocal.data = data
+                return super(MySchema, self).load(data, *args, **kwargs)
+
+        class FooSchema(MySchema):
+            foo = f.String(required=True)
+
+        class BarSchema(MySchema):
+            bar = f.Integer(required=True)
+
+        class TestSchema(OneOfSchema):
+            type_field_remove = False
+            type_schemas = {
+                'Foo': FooSchema,
+                'Bar': BarSchema,
+            }
+
+        TestSchema().load({'type': 'Foo', 'foo': 'hello'})
+        assert 'type' in Nonlocal.data
+
+        TestSchema().load({'type': 'Bar', 'bar': 123})
+        assert 'type' in Nonlocal.data
+
     def test_load_non_dict(self):
         result = MySchema().load(123)
         assert {} != result.errors
