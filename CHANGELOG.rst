@@ -1,6 +1,11 @@
 Changelog
 ---------
 
+1.0.5 (2017-06-20)
+++++++++++++++++++
+
+* Report error during load if "type" value is unhashable
+
 1.0.4 (2017-04-25)
 ++++++++++++++++++
 
