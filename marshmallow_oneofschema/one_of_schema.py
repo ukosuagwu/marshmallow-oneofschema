@@ -146,10 +146,10 @@ class OneOfSchema(Schema):
 
         try:
             type_schema = self.type_schemas.get(data_type)
-        except TypeError as exc:
+        except TypeError:
             # data_type could be unhashable
             return UnmarshalResult({}, {
-                self.type_field: [str(exc)]
+                self.type_field: ['Invalid value: %s' % data_type]
             })
         if not type_schema:
             return UnmarshalResult({}, {
