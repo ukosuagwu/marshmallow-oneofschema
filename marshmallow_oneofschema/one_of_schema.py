@@ -144,7 +144,13 @@ class OneOfSchema(Schema):
                 self.type_field: ['Missing data for required field.']
             })
 
-        type_schema = self.type_schemas.get(data_type)
+        try:
+            type_schema = self.type_schemas.get(data_type)
+        except TypeError:
+            # data_type could be unhashable
+            return UnmarshalResult({}, {
+                self.type_field: ['Invalid value: %s' % data_type]
+            })
         if not type_schema:
             return UnmarshalResult({}, {
                 self.type_field: ['Unsupported value: %s' % data_type],
