@@ -98,6 +98,9 @@ class OneOfSchema(Schema):
 
         schema = (type_schema if isinstance(type_schema, Schema)
                   else type_schema())
+
+        schema.context.update(getattr(self, 'context', {}))
+
         result = schema.dump(
             obj, many=False, update_fields=update_fields, **kwargs
         )
@@ -158,6 +161,9 @@ class OneOfSchema(Schema):
 
         schema = (type_schema if isinstance(type_schema, Schema)
                   else type_schema())
+
+        schema.context.update(getattr(self, 'context', {}))
+
         return schema.load(data, many=False, partial=partial)
 
     def validate(self, data, many=None, partial=None):
