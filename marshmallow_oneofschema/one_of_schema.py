@@ -174,8 +174,7 @@ class OneOfSchema(Schema):
             })
 
         schema = (
-            type_schema if isinstance(type_schema, Schema) 
-            else type_schema()
+            type_schema if isinstance(type_schema, Schema) else type_schema()
         )
 
         schema.context.update(getattr(self, 'context', {}))
