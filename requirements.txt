@@ -1,4 +1,4 @@
-marshmallow>=2.6
+marshmallow==3.0.0b9
 
 # Testing
 pytest==2.8.0

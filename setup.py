@@ -20,7 +20,7 @@ setup(
     keywords=('serialization', 'deserialization', 'json',
               'marshal', 'marshalling', 'schema', 'validation',
               'multiplexing', 'demultiplexing', 'polymorphic'),
-    install_requires=['marshmallow>=2.6.0'],
+    install_requires=['marshmallow==3.0.0b9'],
     classifiers=[
         'Intended Audience :: Developers',
         'License :: OSI Approved :: MIT License',
