@@ -1,4 +1,4 @@
-from marshmallow import Schema, MarshalResult, UnmarshalResult, ValidationError
+from marshmallow import Schema, ValidationError
 
 
 class OneOfSchema(Schema):
@@ -63,78 +63,92 @@ class OneOfSchema(Schema):
         return obj.__class__.__name__
 
     def dump(self, obj, many=None, update_fields=True, **kwargs):
+        errors = {}
+        result_data = []
+        result_errors = {}
         many = self.many if many is None else bool(many)
         if not many:
-            result = self._dump(obj, update_fields, **kwargs)
+            result = result_data = self._dump(obj, update_fields, **kwargs)
         else:
-            result_data = []
-            result_errors = {}
-
             for idx, o in enumerate(obj):
-                result = self._dump(o, update_fields, **kwargs)
-                result_data.append(result.data)
-                if result.errors:
-                    result_errors[idx] = result.errors
+                try:
+                    result = self._dump(o, update_fields, **kwargs)
+                    result_data.append(result)
+                except ValidationError as error:
+                    result_errors[idx] = error.messages
+                    result_data.append(error.valid_data)
 
-            result = MarshalResult(result_data, result_errors)
+        result = result_data
+        errors = result_errors
 
-        if result.errors and self.strict:
-            raise ValidationError(result.errors)
-
-        return result
+        if not errors:
+            return result
+        else:
+            exc = ValidationError(errors, data=obj, valid_data=result)
+            raise exc
 
     def _dump(self, obj, update_fields=True, **kwargs):
         obj_type = self.get_obj_type(obj)
         if not obj_type:
-            return MarshalResult(None, {
+            return None, {
                 '_schema': 'Unknown object class: %s' % obj.__class__.__name__
-            })
+            }
 
         type_schema = self.type_schemas.get(obj_type)
         if not type_schema:
-            return MarshalResult(None, {
+            return None, {
                 '_schema': 'Unsupported object type: %s' % obj_type
-            })
+            }
 
-        schema = (type_schema if isinstance(type_schema, Schema)
-                  else type_schema())
+        schema = (
+            type_schema if isinstance(type_schema, Schema)
+            else type_schema()
+        )
 
         schema.context.update(getattr(self, 'context', {}))
 
         result = schema.dump(
             obj, many=False, update_fields=update_fields, **kwargs
         )
-        if result.data:
-            result.data[self.type_field] = obj_type
+        if result:
+            result[self.type_field] = obj_type
         return result
 
     def load(self, data, many=None, partial=None):
+        errors = {}
+        result_data = []
+        result_errors = {}
         many = self.many if many is None else bool(many)
         if partial is None:
             partial = self.partial
-
         if not many:
-            result = self._load(data, partial=partial)
+            try:
+                result = result_data = self._load(data, partial=partial)
+                #  result_data.append(result)
+            except ValidationError as error:
+                result_errors[0] = error.messages
+                result_data.append(error.valid_data)
         else:
-            result_data = []
-            result_errors = {}
-
             for idx, item in enumerate(data):
-                result = self._load(item, partial=partial)
-                result_data.append(result.data)
-                if result.errors:
-                    result_errors[idx] = result.errors
+                try:
+                    result = self._load(item, partial=partial)
+                    result_data.append(result)
+                except ValidationError as error:
+                    result_errors[idx] = error.messages
+                    result_data.append(error.valid_data)
 
-            result = UnmarshalResult(result_data, result_errors)
+        result = result_data
+        errors = result_errors
 
-        if result.errors and self.strict:
-            raise ValidationError(result.errors)
-
-        return result
+        if not errors:
+            return result
+        else:
+            exc = ValidationError(errors, data=data, valid_data=result)
+            raise exc
 
     def _load(self, data, partial=None):
         if not isinstance(data, dict):
-            return UnmarshalResult({}, {'_schema': 'Invalid data type: %s' % data})
+            raise ValidationError({'_schema': 'Invalid data type: %s' % data})
 
         data = dict(data)
 
@@ -143,7 +157,7 @@ class OneOfSchema(Schema):
             data.pop(self.type_field)
 
         if not data_type:
-            return UnmarshalResult({}, {
+            raise ValidationError({
                 self.type_field: ['Missing data for required field.']
             })
 
@@ -151,16 +165,17 @@ class OneOfSchema(Schema):
             type_schema = self.type_schemas.get(data_type)
         except TypeError:
             # data_type could be unhashable
-            return UnmarshalResult({}, {
+            raise ValidationError({
                 self.type_field: ['Invalid value: %s' % data_type]
             })
         if not type_schema:
-            return UnmarshalResult({}, {
+            raise ValidationError({
                 self.type_field: ['Unsupported value: %s' % data_type],
             })
 
-        schema = (type_schema if isinstance(type_schema, Schema)
-                  else type_schema())
+        schema = (
+            type_schema if isinstance(type_schema, Schema) else type_schema()
+        )
 
         schema.context.update(getattr(self, 'context', {}))
 
@@ -168,6 +183,7 @@ class OneOfSchema(Schema):
 
     def validate(self, data, many=None, partial=None):
         try:
-            return self.load(data, many=many, partial=partial).errors
+            self.load(data, many=many, partial=partial)
         except ValidationError as ve:
             return ve.messages
+        return {}

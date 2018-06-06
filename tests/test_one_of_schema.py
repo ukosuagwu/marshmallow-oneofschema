@@ -78,49 +78,41 @@ class MySchema(OneOfSchema):
 class TestOneOfSchema:
     def test_dump(self):
         foo_result = MySchema().dump(Foo('hello'))
-        assert {'type': 'Foo', 'value': 'hello'} == foo_result.data
-        assert {} == foo_result.errors
+        assert {'type': 'Foo', 'value': 'hello'} == foo_result
 
         bar_result = MySchema().dump(Bar(123))
-        assert {'type': 'Bar', 'value': 123} == bar_result.data
-        assert {} == bar_result.errors
+        assert {'type': 'Bar', 'value': 123} == bar_result
 
     def test_dump_many(self):
         result = MySchema().dump([Foo('hello'), Bar(123)], many=True)
         assert [{'type': 'Foo', 'value': 'hello'},
-                {'type': 'Bar', 'value': 123}] == result.data
-        assert {} == result.errors
+                {'type': 'Bar', 'value': 123}] == result
 
     def test_dump_many_in_constructor(self):
         result = MySchema(many=True).dump([Foo('hello'), Bar(123)])
         assert [{'type': 'Foo', 'value': 'hello'},
-                {'type': 'Bar', 'value': 123}] == result.data
-        assert {} == result.errors
+                {'type': 'Bar', 'value': 123}] == result
 
     def test_load(self):
         foo_result = MySchema().load({'type': 'Foo', 'value': 'world'})
-        assert Foo('world') == foo_result.data
-        assert {} == foo_result.errors
+        assert Foo('world') == foo_result
 
         bar_result = MySchema().load({'type': 'Bar', 'value': 456})
-        assert Bar(456) == bar_result.data
-        assert {} == bar_result.errors
+        assert Bar(456) == bar_result
 
     def test_load_many(self):
         result = MySchema().load([
             {'type': 'Foo', 'value': 'hello world!'},
             {'type': 'Bar', 'value': 123},
         ], many=True)
-        assert [Foo('hello world!'), Bar(123)] == result.data
-        assert {} == result.errors
+        assert Foo('hello world!'), Bar(123) == result
 
     def test_load_many_in_constructor(self):
         result = MySchema(many=True).load([
             {'type': 'Foo', 'value': 'hello world!'},
             {'type': 'Bar', 'value': 123},
         ])
-        assert [Foo('hello world!'), Bar(123)] == result.data
-        assert {} == result.errors
+        assert Foo('hello world!'), Bar(123) == result
 
     def test_load_removes_type_field(self):
         class Nonlocal(object):
@@ -179,37 +171,45 @@ class TestOneOfSchema:
         assert Nonlocal.data['type'] == 'Bar'
 
     def test_load_non_dict(self):
-        result = MySchema().load(123)
-        assert {} != result.errors
+        with pytest.raises(m.ValidationError) as exc_info:
+            MySchema().load(123)
+        assert {} != exc_info.value
 
-        result = MySchema().load('Foo')
-        assert {} != result.errors
+        with pytest.raises(m.ValidationError) as exc_info:
+            MySchema().load('Foo')
+        assert {} != exc_info.value
 
     def test_load_errors_no_type(self):
-        result = MySchema().load({'value': 'Foo'})
-        assert {'type': [REQUIRED_ERROR]} == result.errors
+        with pytest.raises(m.ValidationError) as exc_info:
+            MySchema().load({'value': 'Foo'})
+        assert {0: {'type': [REQUIRED_ERROR]}} == exc_info.value.messages
 
     def test_load_errors_field_error(self):
-        result = MySchema().load({'type': 'Foo'})
-        assert {'value': [REQUIRED_ERROR]} == result.errors
+        with pytest.raises(m.ValidationError) as exc_info:
+            MySchema().load({'type': 'Foo'})
+        assert {0: {'value': [REQUIRED_ERROR]}} == exc_info.value.messages
 
     def test_load_errors_strict(self):
         with pytest.raises(m.ValidationError) as exc_info:
-            MySchema(strict=True).load({'type': 'Foo'})
+            MySchema().load({'type': 'Foo'})
 
-        assert {'value': ['Missing data for required field.']} == \
-            exc_info.value.messages
+        assert {
+            0: {
+                'value': ['Missing data for required field.']
+            }
+        } == exc_info.value.messages
 
     def test_load_many_errors_are_indexed_by_object_position(self):
-        result = MySchema().load([
-            {'type': 'Foo'},
-            {'type': 'Bar', 'value': 123},
-        ], many=True)
-        assert {0: {'value': [REQUIRED_ERROR]}} == result.errors
+        with pytest.raises(m.ValidationError) as exc_info:
+            MySchema().load([
+                {'type': 'Foo'},
+                {'type': 'Bar', 'value': 123},
+            ], many=True)
+        assert {0: {'value': [REQUIRED_ERROR]}} == exc_info.value.messages
 
     def test_load_many_errors_strict(self):
         with pytest.raises(m.ValidationError) as exc_info:
-            MySchema(strict=True).load([
+            MySchema().load([
                 {'type': 'Foo', 'value': 'hello world!'},
                 {'type': 'Foo'},
                 {'type': 'Bar', 'value': 123},
@@ -220,57 +220,54 @@ class TestOneOfSchema:
                 3: {'value': ['Not a valid integer.']}} == exc_info.value.messages
 
     def test_load_partial_specific(self):
-        result = MySchema().load({'type': 'Foo'},
-                                 partial=('value', 'value2',))
-        assert Foo() == result.data
-        assert {} == result.errors
+        result = MySchema().load(
+            {'type': 'Foo'},
+            partial=('value', 'value2',)
+        )
+        assert Foo() == result
 
-        result = MySchema().load({'type': 'Baz', 'value1': 123},
-                                 partial=('value', 'value2',))
-        assert Baz(value1=123) == result.data
-        assert {} == result.errors
+        result = MySchema().load(
+            {'type': 'Baz', 'value1': 123},
+            partial=('value', 'value2',)
+        )
+        assert Baz(value1=123) == result
 
     def test_load_partial_any(self):
         result = MySchema().load({'type': 'Foo'}, partial=True)
-        assert Foo() == result.data
-        assert {} == result.errors
+        assert Foo() == result
 
         result = MySchema().load({'type': 'Baz', 'value1': 123}, partial=True)
-        assert Baz(value1=123) == result.data
-        assert {} == result.errors
+        assert Baz(value1=123) == result
 
         result = MySchema().load({'type': 'Baz', 'value2': 'hello'}, partial=True)
-        assert Baz(value2='hello') == result.data
-        assert {} == result.errors
+        assert Baz(value2='hello') == result
 
     def test_load_partial_specific_in_constructor(self):
         result = MySchema(partial=('value', 'value2',)).load({'type': 'Foo'})
-        assert Foo() == result.data
-        assert {} == result.errors
+        assert Foo() == result
 
         result = MySchema(partial=('value', 'value2',))\
             .load({'type': 'Baz', 'value1': 123})
-        assert Baz(value1=123) == result.data
-        assert {} == result.errors
+        assert Baz(value1=123) == result
 
     def test_load_partial_any_in_constructor(self):
         result = MySchema(partial=True).load({'type': 'Foo'})
-        assert Foo() == result.data
-        assert {} == result.errors
+        assert Foo() == result
 
         result = MySchema(partial=True).load({'type': 'Baz', 'value1': 123})
-        assert Baz(value1=123) == result.data
-        assert {} == result.errors
+        assert Baz(value1=123) == result
 
         result = MySchema(partial=True).load({'type': 'Baz', 'value2': 'hello'})
-        assert Baz(value2='hello') == result.data
-        assert {} == result.errors
+        assert Baz(value2='hello') == result
 
     def test_validate(self):
         assert {} == MySchema().validate({'type': 'Foo', 'value': '123'})
-        assert {'value': [REQUIRED_ERROR]} == MySchema().validate({'type': 'Bar'})
-        assert {'value': [REQUIRED_ERROR]} == \
-            MySchema(strict=True).validate({'type': 'Bar'})
+        assert {
+            0: {'value': [REQUIRED_ERROR]}
+        } == MySchema().validate({'type': 'Bar'})
+        assert {
+            0: {'value': [REQUIRED_ERROR]}
+        } == MySchema().validate({'type': 'Bar'})
 
     def test_validate_many(self):
         errors = MySchema().validate([
@@ -286,7 +283,7 @@ class TestOneOfSchema:
         assert {0: {'type': [REQUIRED_ERROR]},
                 1: {'value': [REQUIRED_ERROR]}} == errors
 
-        errors = MySchema(strict=True).validate([
+        errors = MySchema().validate([
             {'value': '123'},
             {'type': 'Bar'},
         ], many=True)
@@ -308,41 +305,61 @@ class TestOneOfSchema:
                 1: {'value': [REQUIRED_ERROR]}} == errors
 
     def test_validate_partial_specific(self):
-        errors = MySchema().validate({'type': 'Foo'},
-                                     partial=('value', 'value2',))
+        errors = MySchema().validate(
+            {'type': 'Foo'},
+            partial=('value', 'value2',)
+        )
         assert {} == errors
 
-        errors = MySchema().validate({'type': 'Baz', 'value1': 123},
-                                     partial=('value', 'value2',))
+        errors = MySchema().validate(
+            {'type': 'Baz', 'value1': 123},
+            partial=('value', 'value2',)
+        )
         assert {} == errors
 
     def test_validate_partial_any(self):
-        errors = MySchema().validate({'type': 'Foo'}, partial=True)
+        errors = MySchema().validate(
+            {'type': 'Foo'}, partial=True
+        )
         assert {} == errors
 
-        errors = MySchema().validate({'type': 'Baz', 'value1': 123}, partial=True)
+        errors = MySchema().validate(
+            {'type': 'Baz', 'value1': 123},
+            partial=True
+        )
         assert {} == errors
 
-        errors = MySchema().validate({'type': 'Baz', 'value2': 'hello'},
-                                     partial=True)
+        errors = MySchema().validate(
+            {'type': 'Baz', 'value2': 'hello'},
+            partial=True
+        )
         assert {} == errors
 
     def test_validate_partial_specific_in_constructor(self):
-        errors = MySchema(partial=('value', 'value2',)).validate({'type': 'Foo'})
+        errors = MySchema(
+            partial=('value', 'value2',)
+        ).validate({'type': 'Foo'})
         assert {} == errors
 
-        errors = MySchema(partial=('value', 'value2',))\
-            .validate({'type': 'Baz', 'value1': 123})
+        errors = MySchema(
+            partial=('value', 'value2',)
+        ).validate({'type': 'Baz', 'value1': 123})
         assert {} == errors
 
     def test_validate_partial_any_in_constructor(self):
-        errors = MySchema(partial=True).validate({'type': 'Foo'})
+        errors = MySchema(
+            partial=True
+        ).validate({'type': 'Foo'})
         assert {} == errors
 
-        errors = MySchema(partial=True).validate({'type': 'Baz', 'value1': 123})
+        errors = MySchema(
+            partial=True
+        ).validate({'type': 'Baz', 'value1': 123})
         assert {} == errors
 
-        errors = MySchema(partial=True).validate({'type': 'Baz', 'value2': 'hello'})
+        errors = MySchema(
+            partial=True
+        ).validate({'type': 'Baz', 'value2': 'hello'})
         assert {} == errors
 
     def test_using_as_nested_schema(self):
@@ -354,14 +371,14 @@ class TestOneOfSchema:
             {'type': 'Foo', 'value': 'hello world!'},
             {'type': 'Bar', 'value': 123},
         ]})
-        assert {'items': [Foo('hello world!'), Bar(123)]} == result.data
-        assert {} == result.errors
+        assert {'items': [Foo('hello world!'), Bar(123)]} == result
 
-        result = schema.load({'items': [
-            {'type': 'Foo', 'value': 'hello world!'},
-            {'value': 123},
-        ]})
-        assert {'items': {1: {'type': [REQUIRED_ERROR]}}} == result.errors
+        with pytest.raises(m.ValidationError) as exc_info:
+            schema.load({'items': [
+                {'type': 'Foo', 'value': 'hello world!'},
+                {'value': 123},
+            ]})
+        assert {'items': {1: {0: {'type': [REQUIRED_ERROR]}}}} == exc_info.value.messages
 
     def test_using_as_nested_schema_with_many(self):
         class SchemaWithMany(m.Schema):
@@ -372,14 +389,14 @@ class TestOneOfSchema:
             {'type': 'Foo', 'value': 'hello world!'},
             {'type': 'Bar', 'value': 123},
         ]})
-        assert {'items': [Foo('hello world!'), Bar(123)]} == result.data
-        assert {} == result.errors
+        assert {'items': [Foo('hello world!'), Bar(123)]} == result
 
-        result = schema.load({'items': [
-            {'type': 'Foo', 'value': 'hello world!'},
-            {'value': 123},
-        ]})
-        assert {'items': {1: {'type': [REQUIRED_ERROR]}}} == result.errors
+        with pytest.raises(m.ValidationError) as exc_info:
+            schema.load({'items': [
+                {'type': 'Foo', 'value': 'hello world!'},
+                {'value': 123},
+            ]})
+        assert {'items': {1: {'type': [REQUIRED_ERROR]}}} == exc_info.value.messages
 
     def test_using_custom_type_names(self):
         class MyCustomTypeNameSchema(OneOfSchema):
@@ -395,12 +412,10 @@ class TestOneOfSchema:
         data = [Foo('hello'), Bar(111)]
         marshalled = schema.dump(data, many=True)
         assert [{'type': 'baz', 'value': 'hello'},
-                {'type': 'bam', 'value': 111}] == marshalled.data
-        assert {} == marshalled.errors
+                {'type': 'bam', 'value': 111}] == marshalled
 
-        unmarshalled = schema.load(marshalled.data, many=True)
-        assert data == unmarshalled.data
-        assert {} == unmarshalled.errors
+        unmarshalled = schema.load(marshalled, many=True)
+        assert data == unmarshalled
 
     def test_using_custom_type_field(self):
         class MyCustomTypeFieldSchema(MySchema):
@@ -410,9 +425,7 @@ class TestOneOfSchema:
         data = [Foo('hello'), Bar(111)]
         marshalled = schema.dump(data, many=True)
         assert [{'object_type': 'Foo', 'value': 'hello'},
-                {'object_type': 'Bar', 'value': 111}] == marshalled.data
-        assert {} == marshalled.errors
+                {'object_type': 'Bar', 'value': 111}] == marshalled
 
-        unmarshalled = schema.load(marshalled.data, many=True)
-        assert data == unmarshalled.data
-        assert {} == unmarshalled.errors
+        unmarshalled = schema.load(marshalled, many=True)
+        assert data == unmarshalled

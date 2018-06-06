@@ -20,12 +20,11 @@ setup(
     keywords=('serialization', 'deserialization', 'json',
               'marshal', 'marshalling', 'schema', 'validation',
               'multiplexing', 'demultiplexing', 'polymorphic'),
-    install_requires=['marshmallow>=2.6.0'],
+    install_requires=['marshmallow==3.0.0b9'],
     classifiers=[
         'Intended Audience :: Developers',
         'License :: OSI Approved :: MIT License',
         'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 2.6',
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.3',
