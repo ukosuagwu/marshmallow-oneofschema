@@ -67,11 +67,22 @@ class BazSchema(m.Schema):
         return Baz(**data)
 
 
+class Empty(object):
+    pass
+
+
+class EmptySchema(m.Schema):
+    @m.post_load
+    def make_empty(self, data):
+        return Empty(**data)
+
+
 class MySchema(OneOfSchema):
     type_schemas = {
         'Foo': FooSchema,
         'Bar': BarSchema,
         'Baz': BazSchema,
+        'Empty': EmptySchema,
     }
 
 
@@ -92,6 +103,10 @@ class TestOneOfSchema:
         result = MySchema(many=True).dump([Foo('hello'), Bar(123)])
         assert [{'type': 'Foo', 'value': 'hello'},
                 {'type': 'Bar', 'value': 123}] == result
+
+    def test_dump_with_empty_keeps_type(self):
+        result = MySchema().dump(Empty())
+        assert {'type': 'Empty'} == result
 
     def test_load(self):
         foo_result = MySchema().load({'type': 'Foo', 'value': 'world'})
