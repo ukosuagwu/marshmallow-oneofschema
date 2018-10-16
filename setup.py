@@ -1,11 +1,34 @@
 #!/usr/bin/env python
 
-from setuptools import setup
+import subprocess
 
+from setuptools import setup, Command
+
+
+# -----------------------------------------------------------------------------
 
 def read(fname):
     with open(fname) as infile:
         return infile.read()
+
+
+def system(command):
+    class SystemCommand(Command):
+        user_options = []
+
+        def initialize_options(self):
+            pass
+
+        def finalize_options(self):
+            pass
+
+        def run(self):
+            subprocess.check_call(command, shell=True)
+
+    return SystemCommand
+
+
+# -----------------------------------------------------------------------------
 
 setup(
     name='marshmallow-oneofschema',
@@ -17,9 +40,9 @@ setup(
     url='https://github.com/maximkulkin/marshmallow-oneofschema',
     packages=['marshmallow_oneofschema'],
     license=read('LICENSE'),
-    keywords=('serialization', 'deserialization', 'json',
+    keywords=['serialization', 'deserialization', 'json',
               'marshal', 'marshalling', 'schema', 'validation',
-              'multiplexing', 'demultiplexing', 'polymorphic'),
+              'multiplexing', 'demultiplexing', 'polymorphic'],
     install_requires=['marshmallow>=3.0.0b12,<=3.0.0b18'],
     classifiers=[
         'Intended Audience :: Developers',
@@ -34,4 +57,10 @@ setup(
         'Programming Language :: Python :: Implementation :: CPython',
         'Programming Language :: Python :: Implementation :: PyPy',
     ],
+    cmdclass={
+        'clean': system('rm -rf build dist *.egg-info'),
+        'package': system('python setup.py sdist bdist_wheel'),
+        'publish': system('twine upload dist/*'),
+        'release': system('python setup.py clean package publish'),
+    },
 )
