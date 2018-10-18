@@ -28,13 +28,6 @@ Installing
 
     $ pip install marshmallow-oneofschema
 
-Importing
----------
-Here is how to import the necessary field class
-::
-
-    from marshmallow_oneofschema import OneOfSchema
-
 Example
 -------
 
