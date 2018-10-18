@@ -2,11 +2,15 @@
 Marshmallow-OneOfSchema
 =======================
 
-.. image:: https://travis-ci.org/maximkulkin/marshmallow-oneofschema.svg?branch=master
-    :target: https://travis-ci.org/maximkulkin/marshmallow-oneofschema
+.. image:: https://travis-ci.org/marshmallow-code/marshmallow-oneofschema.svg?branch=master
+    :target: https://travis-ci.org/marshmallow-code/marshmallow-oneofschema
     :alt: Build Status
 
-An extenstion to Marshmallow to support schema (de)multiplexing.
+.. image:: https://img.shields.io/badge/marshmallow-3-blue.svg
+    :target: https://marshmallow.readthedocs.io/en/latest/upgrading.html
+    :alt: marshmallow 3 compatible
+
+An extension to Marshmallow to support schema (de)multiplexing.
 
 Marshmallow is a fantastic library for serialization and deserialization of data.
 For more on that project see its `GitHub <https://github.com/marshmallow-code/marshmallow>`_
@@ -125,4 +129,4 @@ You can use resulting schema everywhere marshmallow.Schema can be used, e.g.
 License
 -------
 
-MIT licensed. See the bundled `LICENSE <https://github.com/maximkulkin/marshmallow-oneofschema/blob/master/LICENSE>`_ file for more details.
+MIT licensed. See the bundled `LICENSE <https://github.com/marshmallow-code/marshmallow-oneofschema/blob/master/LICENSE>`_ file for more details.
