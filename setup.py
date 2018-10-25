@@ -32,7 +32,7 @@ def system(command):
 
 setup(
     name='marshmallow-oneofschema',
-    version='2.0.0b1',
+    version='2.0.0b2',
     description='Marshmallow multiplexing schema',
     long_description=read('README.rst'),
     author='Maxim Kulkin',
