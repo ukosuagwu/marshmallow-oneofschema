@@ -6,3 +6,6 @@ tox==3.5.2
 
 # Syntax checking
 flake8==3.6.0
+
+# Install this package in development mode
+-e '.'
