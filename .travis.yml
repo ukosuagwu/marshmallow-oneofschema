@@ -20,7 +20,7 @@ before_install:
 
 install:
   - pip install -U .
-  - pip install -U -r requirements.txt
+  - pip install -U -r dev-requirements.txt
 
 before_script:
   - flake8 .
