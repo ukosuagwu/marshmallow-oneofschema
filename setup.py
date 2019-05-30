@@ -1,67 +1,59 @@
 #!/usr/bin/env python
 
-import subprocess
+from setuptools import setup
 
-from setuptools import setup, Command
+EXTRAS_REQUIRE = {
+    "tests": ["pytest", "mock"],
+    "lint": [
+        "flake8==3.7.7",
+        'flake8-bugbear==19.3.0; python_version >= "3.5"',
+        "pre-commit==1.16.1",
+    ],
+}
+EXTRAS_REQUIRE["dev"] = EXTRAS_REQUIRE["tests"] + EXTRAS_REQUIRE["lint"] + ["tox"]
 
-
-# -----------------------------------------------------------------------------
 
 def read(fname):
-    with open(fname) as infile:
-        return infile.read()
+    with open(fname) as fp:
+        content = fp.read()
+    return content
 
-
-def system(command):
-    class SystemCommand(Command):
-        user_options = []
-
-        def initialize_options(self):
-            pass
-
-        def finalize_options(self):
-            pass
-
-        def run(self):
-            subprocess.check_call(command, shell=True)
-
-    return SystemCommand
-
-
-# -----------------------------------------------------------------------------
 
 setup(
-    name='marshmallow-oneofschema',
-    version='2.0.0b2',
-    description='Marshmallow multiplexing schema',
-    long_description=read('README.rst'),
-    author='Maxim Kulkin',
-    author_email='maxim.kulkin@gmail.com',
-    maintainer='Alex Rothberg',
-    maintainer_email='agrothberg@gmail.com',
-    url='https://github.com/marshmallow-code/marshmallow-oneofschema',
-    packages=['marshmallow_oneofschema'],
-    license=read('LICENSE'),
-    keywords=['serialization', 'deserialization', 'json',
-              'marshal', 'marshalling', 'schema', 'validation',
-              'multiplexing', 'demultiplexing', 'polymorphic'],
-    install_requires=['marshmallow>=3.0.0b12,<4.0.0'],
-    classifiers=[
-        'Intended Audience :: Developers',
-        'License :: OSI Approved :: MIT License',
-        'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 2.7',
-        'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.5',
-        'Programming Language :: Python :: 3.6',
-        'Programming Language :: Python :: 3.7',
-        'Programming Language :: Python :: Implementation :: CPython',
-        'Programming Language :: Python :: Implementation :: PyPy',
+    name="marshmallow-oneofschema",
+    version="2.0.0b2",
+    description="marshmallow multiplexing schema",
+    long_description=read("README.rst"),
+    author="Maxim Kulkin",
+    author_email="maxim.kulkin@gmail.com",
+    maintainer="Steven Loria",
+    maintainer_email="sloria1@gmail.com",
+    url="https://github.com/marshmallow-code/marshmallow-oneofschema",
+    packages=["marshmallow_oneofschema"],
+    license=read("LICENSE"),
+    keywords=[
+        "serialization",
+        "deserialization",
+        "json",
+        "marshal",
+        "marshalling",
+        "schema",
+        "validation",
+        "multiplexing",
+        "demultiplexing",
+        "polymorphic",
     ],
-    cmdclass={
-        'clean': system('rm -rf build dist *.egg-info'),
-        'package': system('python setup.py sdist bdist_wheel'),
-        'publish': system('twine upload dist/*'),
-        'release': system('python setup.py clean package publish'),
-    },
+    python_requires=">=3.5",
+    install_requires=["marshmallow>=3.0.0b12,<4.0.0"],
+    extras_require=EXTRAS_REQUIRE,
+    classifiers=[
+        "Intended Audience :: Developers",
+        "License :: OSI Approved :: MIT License",
+        "Programming Language :: Python :: 2",
+        "Programming Language :: Python :: 2.7",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.5",
+        "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.7",
+    ],
 )

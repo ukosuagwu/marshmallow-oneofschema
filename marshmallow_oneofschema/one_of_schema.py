@@ -54,7 +54,8 @@ class OneOfSchema(Schema):
     You can control type field name added to serialized object representation by
     setting `type_field` class property.
     """
-    type_field = 'type'
+
+    type_field = "type"
     type_field_remove = True
     type_schemas = []
 
@@ -62,7 +63,7 @@ class OneOfSchema(Schema):
         """Returns name of object schema"""
         return obj.__class__.__name__
 
-    def dump(self, obj, many=None, **kwargs):
+    def dump(self, obj, *, many=None, **kwargs):
         errors = {}
         result_data = []
         result_errors = {}
@@ -87,34 +88,28 @@ class OneOfSchema(Schema):
             exc = ValidationError(errors, data=obj, valid_data=result)
             raise exc
 
-    def _dump(self, obj, update_fields=True, **kwargs):
+    def _dump(self, obj, *, update_fields=True, **kwargs):
         obj_type = self.get_obj_type(obj)
         if not obj_type:
-            return None, {
-                '_schema': 'Unknown object class: %s' % obj.__class__.__name__
-            }
+            return (
+                None,
+                {"_schema": "Unknown object class: %s" % obj.__class__.__name__},
+            )
 
         type_schema = self.type_schemas.get(obj_type)
         if not type_schema:
-            return None, {
-                '_schema': 'Unsupported object type: %s' % obj_type
-            }
+            return None, {"_schema": "Unsupported object type: %s" % obj_type}
 
-        schema = (
-            type_schema if isinstance(type_schema, Schema)
-            else type_schema()
-        )
+        schema = type_schema if isinstance(type_schema, Schema) else type_schema()
 
-        schema.context.update(getattr(self, 'context', {}))
+        schema.context.update(getattr(self, "context", {}))
 
-        result = schema.dump(
-            obj, many=False, **kwargs
-        )
+        result = schema.dump(obj, many=False, **kwargs)
         if result is not None:
             result[self.type_field] = obj_type
         return result
 
-    def load(self, data, many=None, partial=None, unknown=None):
+    def load(self, data, *, many=None, partial=None, unknown=None):
         errors = {}
         result_data = []
         result_errors = {}
@@ -148,9 +143,9 @@ class OneOfSchema(Schema):
             exc = ValidationError(errors, data=data, valid_data=result)
             raise exc
 
-    def _load(self, data, partial=None, unknown=None):
+    def _load(self, data, *, partial=None, unknown=None):
         if not isinstance(data, dict):
-            raise ValidationError({'_schema': 'Invalid data type: %s' % data})
+            raise ValidationError({"_schema": "Invalid data type: %s" % data})
 
         data = dict(data)
         unknown = unknown or self.unknown
@@ -160,31 +155,27 @@ class OneOfSchema(Schema):
             data.pop(self.type_field)
 
         if not data_type:
-            raise ValidationError({
-                self.type_field: ['Missing data for required field.']
-            })
+            raise ValidationError(
+                {self.type_field: ["Missing data for required field."]}
+            )
 
         try:
             type_schema = self.type_schemas.get(data_type)
         except TypeError:
             # data_type could be unhashable
-            raise ValidationError({
-                self.type_field: ['Invalid value: %s' % data_type]
-            })
+            raise ValidationError({self.type_field: ["Invalid value: %s" % data_type]})
         if not type_schema:
-            raise ValidationError({
-                self.type_field: ['Unsupported value: %s' % data_type],
-            })
+            raise ValidationError(
+                {self.type_field: ["Unsupported value: %s" % data_type]}
+            )
 
-        schema = (
-            type_schema if isinstance(type_schema, Schema) else type_schema()
-        )
+        schema = type_schema if isinstance(type_schema, Schema) else type_schema()
 
-        schema.context.update(getattr(self, 'context', {}))
+        schema.context.update(getattr(self, "context", {}))
 
         return schema.load(data, many=False, partial=partial, unknown=unknown)
 
-    def validate(self, data, many=None, partial=None):
+    def validate(self, data, *, many=None, partial=None):
         try:
             self.load(data, many=many, partial=partial)
         except ValidationError as ve:
