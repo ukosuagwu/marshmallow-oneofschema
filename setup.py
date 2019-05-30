@@ -30,7 +30,7 @@ setup(
     maintainer_email="sloria1@gmail.com",
     url="https://github.com/marshmallow-code/marshmallow-oneofschema",
     packages=["marshmallow_oneofschema"],
-    license=read("LICENSE"),
+    license="MIT",
     keywords=[
         "serialization",
         "deserialization",
