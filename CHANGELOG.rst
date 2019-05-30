@@ -1,6 +1,13 @@
 Changelog
 ---------
 
+2.0.0 (unreleased)
+++++++++++++++++++
+
+Deprecations/Removals:
+
+- Drop Python 2 (no longer supported by marshmallow 3).
+
 2.0.0b2 (2018-10-25)
 ++++++++++++++++++++
 
