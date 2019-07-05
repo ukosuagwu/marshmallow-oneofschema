@@ -197,19 +197,19 @@ class TestOneOfSchema:
     def test_load_errors_no_type(self):
         with pytest.raises(m.ValidationError) as exc_info:
             MySchema().load({"value": "Foo"})
-        assert {0: {"type": [REQUIRED_ERROR]}} == exc_info.value.messages
+        assert {"type": [REQUIRED_ERROR]} == exc_info.value.messages
 
     def test_load_errors_field_error(self):
         with pytest.raises(m.ValidationError) as exc_info:
             MySchema().load({"type": "Foo"})
-        assert {0: {"value": [REQUIRED_ERROR]}} == exc_info.value.messages
+        assert {"value": [REQUIRED_ERROR]} == exc_info.value.messages
 
     def test_load_errors_strict(self):
         with pytest.raises(m.ValidationError) as exc_info:
             MySchema().load({"type": "Foo"})
 
         assert {
-            0: {"value": ["Missing data for required field."]}
+            "value": ["Missing data for required field."]
         } == exc_info.value.messages
 
     def test_load_many_errors_are_indexed_by_object_position(self):
@@ -274,8 +274,8 @@ class TestOneOfSchema:
 
     def test_validate(self):
         assert {} == MySchema().validate({"type": "Foo", "value": "123"})
-        assert {0: {"value": [REQUIRED_ERROR]}} == MySchema().validate({"type": "Bar"})
-        assert {0: {"value": [REQUIRED_ERROR]}} == MySchema().validate({"type": "Bar"})
+        assert {"value": [REQUIRED_ERROR]} == MySchema().validate({"type": "Bar"})
+        assert {"value": [REQUIRED_ERROR]} == MySchema().validate({"type": "Bar"})
 
     def test_validate_many(self):
         errors = MySchema().validate(
@@ -355,9 +355,7 @@ class TestOneOfSchema:
             schema.load(
                 {"items": [{"type": "Foo", "value": "hello world!"}, {"value": 123}]}
             )
-        assert {
-            "items": {1: {0: {"type": [REQUIRED_ERROR]}}}
-        } == exc_info.value.messages
+        assert {"items": {1: {"type": [REQUIRED_ERROR]}}} == exc_info.value.messages
 
     def test_using_as_nested_schema_with_many(self):
         class SchemaWithMany(m.Schema):
