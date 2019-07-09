@@ -56,7 +56,7 @@ Once setup the schema should act like any other schema. If it does not then plea
         foo = marshmallow.fields.String(required=True)
 
         @marshmallow.post_load
-        def make_foo(self, data):
+        def make_foo(self, data, **kwargs):
             return Foo(**data)
 
 
@@ -64,7 +64,7 @@ Once setup the schema should act like any other schema. If it does not then plea
         bar = marshmallow.fields.Integer(required=True)
 
         @marshmallow.post_load
-        def make_bar(self, data):
+        def make_bar(self, data, **kwargs):
             return Bar(**data)
 
 
