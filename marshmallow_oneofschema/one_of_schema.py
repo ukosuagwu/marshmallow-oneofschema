@@ -76,7 +76,7 @@ class OneOfSchema(Schema):
                     result = self._dump(o, **kwargs)
                     result_data.append(result)
                 except ValidationError as error:
-                    result_errors[idx] = error.messages
+                    result_errors[idx] = error.normalized_messages()
                     result_data.append(error.valid_data)
 
         result = result_data
@@ -123,7 +123,7 @@ class OneOfSchema(Schema):
                 )
                 #  result_data.append(result)
             except ValidationError as error:
-                result_errors[0] = error.messages
+                result_errors = error.normalized_messages()
                 result_data.append(error.valid_data)
         else:
             for idx, item in enumerate(data):
@@ -131,7 +131,7 @@ class OneOfSchema(Schema):
                     result = self._load(item, partial=partial)
                     result_data.append(result)
                 except ValidationError as error:
-                    result_errors[idx] = error.messages
+                    result_errors[idx] = error.normalized_messages()
                     result_data.append(error.valid_data)
 
         result = result_data
