@@ -44,7 +44,7 @@ setup(
         "polymorphic",
     ],
     python_requires=">=3.5",
-    install_requires=["marshmallow>=3.0.0rc6"],
+    install_requires=["marshmallow>=3.0.0rc6,<4.0.0"],
     extras_require=EXTRAS_REQUIRE,
     classifiers=[
         "Intended Audience :: Developers",
