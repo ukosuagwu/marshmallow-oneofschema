@@ -22,7 +22,7 @@ class FooSchema(m.Schema):
     value = f.String(required=True)
 
     @m.post_load
-    def make_foo(self, data):
+    def make_foo(self, data, **kwargs):
         return Foo(**data)
 
 
@@ -41,7 +41,7 @@ class BarSchema(m.Schema):
     value = f.Integer(required=True)
 
     @m.post_load
-    def make_bar(self, data):
+    def make_bar(self, data, **kwargs):
         return Bar(**data)
 
 
@@ -66,7 +66,7 @@ class BazSchema(m.Schema):
     value2 = f.String(required=True)
 
     @m.post_load
-    def make_baz(self, data):
+    def make_baz(self, data, **kwargs):
         return Baz(**data)
 
 
@@ -76,7 +76,7 @@ class Empty:
 
 class EmptySchema(m.Schema):
     @m.post_load
-    def make_empty(self, data):
+    def make_empty(self, data, **kwargs):
         return Empty(**data)
 
 
