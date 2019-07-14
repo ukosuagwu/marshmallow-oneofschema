@@ -1,6 +1,20 @@
 Changelog
 ---------
 
+2.0.1 (2019-07-14)
+++++++++++++++++++
+
+Bug fixes:
+
+- Fix error message format by using normalized messages (PR #89).
+
+Other changes:
+
+- Fix tests for compatibility with marshmallow>=3.0.0rc7 compat.
+
+
+Thanks @svidela for these changes.
+
 2.0.0 (2019-05-29)
 ++++++++++++++++++
 
