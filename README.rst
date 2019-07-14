@@ -105,7 +105,7 @@ You can customize type field with `type_field` class property:
         type_schemas = {"Foo": FooSchema, "Bar": BarSchema}
 
 
-    MyUberSchema().dump([Foo(foo="hello"), Bar(bar=123)], many=True).data
+    MyUberSchema().dump([Foo(foo="hello"), Bar(bar=123)], many=True)
     # => [{'object_type': 'Foo', 'foo': 'hello'}, {'object_type': 'Bar', 'bar': 123}]
 
 You can use resulting schema everywhere marshmallow.Schema can be used, e.g.

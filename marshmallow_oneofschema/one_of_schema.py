@@ -48,7 +48,7 @@ class OneOfSchema(Schema):
                 else:
                     raise Exception('Unknown object type: %s' % repr(obj))
 
-        MyUberSchema().dump([Foo(foo='hello'), Bar(bar=123)], many=True).data
+        MyUberSchema().dump([Foo(foo='hello'), Bar(bar=123)], many=True)
         # => [{'type': 'foo', 'foo': 'hello'}, {'type': 'bar', 'bar': 123}]
 
     You can control type field name added to serialized object representation by
