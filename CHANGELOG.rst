@@ -1,6 +1,17 @@
 Changelog
 ---------
 
+1.0.6 (2019-07-14)
+++++++++++++++++++
+
+Bug fixes:
+
+* Fix support for accessing parent ``context``.
+
+Other changes:
+
+* Drop official support for Python 2.6 and Python 3.3.
+
 1.0.5 (2017-06-20)
 ++++++++++++++++++
 
