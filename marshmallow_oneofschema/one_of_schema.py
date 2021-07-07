@@ -160,7 +160,7 @@ class OneOfSchema(Schema):
         unknown = unknown or self.unknown
         data_type = self.get_data_type(data)
 
-        if not data_type:
+        if data_type is None:
             raise ValidationError(
                 {self.type_field: ["Missing data for required field."]}
             )
