@@ -1,6 +1,14 @@
 Changelog
 ---------
 
+3.0.2 (2021-11-14)
+++++++++++++++++++
+
+Bug fixes:
+
+- Fix using `0` as a value for type field (#146).
+  Thanks @dangost for the PR.
+
 3.0.1 (2021-07-07)
 ++++++++++++++++++
 

@@ -15,7 +15,7 @@ def read(fname):
 
 setup(
     name="marshmallow-oneofschema",
-    version="3.0.1",
+    version="3.0.2",
     description="marshmallow multiplexing schema",
     long_description=read("README.rst"),
     author="Maxim Kulkin",
